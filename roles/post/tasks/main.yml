@@ -1,0 +1,49 @@
+- name: Post-stage - Test services and ensure they are running
+  hosts: your_target_group
+  become: yes
+  tasks:
+    - name: Ensure MySQL and Tomcat services are running
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: started
+      loop:
+        - mysqld
+        - tomcat
+
+    - block:
+        - name: Install required packages for uri module
+          ansible.builtin.package:
+            name:
+              - python3-urllib3
+            state: present
+
+        - name: Test HTTP APIs
+          ansible.builtin.uri:
+            url: "{{ item }}"
+            status_code: 200
+          loop:
+            - http://your-api-1.example.com
+            - http://your-api-2.example.com
+            # add more APIs as needed
+          register: result
+
+      rescue:
+        - name: Send failure notification email
+          ansible.builtin.mail:
+            host: your_smtp_host
+            port: your_smtp_port
+            subject: "HTTP API testing failed on {{ inventory_hostname }}"
+            from: "your@email.com"
+            to: "recipient@example.com"
+            body: "An error occurred during HTTP API testing on {{ inventory_hostname }}. Please investigate."
+
+        - name: Handle test failure
+          ansible.builtin.debug:
+            msg: "An error occurred during HTTP API testing. Please investigate."
+
+      always:
+        - name: Display test results
+          ansible.builtin.debug:
+            var: result
+
+    # Add other post-stage tasks as needed

@@ -1,0 +1,11 @@
+- name: Pre-stage - Stop services and perform other tasks
+  hosts: your_target_group
+  become: yes
+  tasks:
+    - name: Stop MySQL and Tomcat services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - mysqld
+        - tomcat
