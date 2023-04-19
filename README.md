@@ -1,4 +1,4 @@
-# autopatch_sleleton
+# autopatch_skeleton
 Ansible based linux auto patching skeleton project
 
 Clone the project.
